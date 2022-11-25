@@ -1,11 +1,16 @@
-from time import sleep, perf_counter
+from threading import Lock
 from threading import Thread
+lock = Lock()
+
+i = 0
 
 
 def task():
-    for i in range(10):
-        sleep(1)
-        print(i)
+    for _ in range(100000):
+        lock.acquire()
+        global i
+        i+= 1 
+        lock.release()
     print('done')
 
 
@@ -17,4 +22,6 @@ t2 = Thread(target=task)
 t1.start()
 t2.start()
 
-
+t1.join()
+t2.join()
+print(i)
