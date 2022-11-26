@@ -3,6 +3,15 @@ import curses
 import os
 import numpy as np
 
+class player:
+    def __init__(self,num,range,attacking_speed,movement_speed,defending_range,blocking_time):
+        self.num = num
+        self.attack_range = range
+        self.attacking_speed = attacking_speed
+        self.movement_speed = movement_speed
+        self.defending_range = defending_range
+        self.blocking_time = blocking_time
+
 def start_stage():
     stdscr = curses.initscr()
     curses.noecho()
@@ -16,7 +25,6 @@ def start_stage():
     i=0
     y=0
     while(True):
-        sys.stdin.reconfigure(newline=None)
         c = stdscr.getch()
         if c == ord('s'):
             stdscr.addstr(i,y,"s")

@@ -2,7 +2,7 @@ from threading import Lock
 from threading import Thread
 import threading
 lock = Lock()
-
+alarm_clock = threading.Event()
 i = 0
 y=0
 
@@ -16,6 +16,7 @@ def task():
 
 def task2():
     for _ in range(100000):
+        alarm_clock.wait()
         lock.acquire()
         global y
         y+= 1 
@@ -29,9 +30,9 @@ t2 = Thread(target=task)
 t1.start()
 t2.start()
 
-t1.join()
-t2.join()
+
 threads = []
+alarm_clock.clear()
 for j in range(10):
     print(f"thread {j} launched")
     thread = Thread(target=task2)
@@ -41,6 +42,7 @@ for j in range(10):
 print(threading.active_count())
 print(y)
 
+alarm_clock.set()
 for th in threads:
     th.join()
 print(y)
