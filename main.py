@@ -62,7 +62,7 @@ def start_stage(game_array):
     draw_player(yoffset,np.where(game_array%3 == 1)[0][0]+xoffset,'b',1)
     draw_player(yoffset,np.where(game_array%3 == 2)[0][0]+xoffset,'b',2)
     for elt in np.where(game_array == 3)[0] :
-        screen.addch(yoffset-1,elt,obstacle)
+        screen.addch(yoffset-1,elt+xoffset,obstacle)
     painter(game_array)
         
 def draw_player(y,x,state,num_player,jump = False):
@@ -97,7 +97,7 @@ def clear_player(y,x,num_player,jump = False):
     if(jump) :
         y-= 1
     if num_player == 1 :
-        screen.addstr(y-4,x-1,"  ")
+        screen.addstr(y-4,x-1,"   ")
         screen.addstr(y-3,x,"  ")
         screen.addstr(y-2,x," ")
         screen.addstr(y-1,x-1,"  ")
@@ -118,10 +118,18 @@ def painter(game_array):
     y=0
     while(True):
         c = screen.getch()
-        if c == ord('q'):
+        if c == ord('x'):
             break
+        if c == curses.KEY_LEFT:
+            left(2)
         if c == curses.KEY_RIGHT:
-            mouv()
+            right(2)
+        if c == curses.KEY_UP:
+            up(2)
+        if c == ord('q'):
+            left(1)
+        if c == ord('d'):
+            right(1)
         
     curses.nocbreak()
     screen.keypad(False)
@@ -129,14 +137,40 @@ def painter(game_array):
     curses.endwin()        
 
 
-def mouv() :
-    x = np.where(game_array%3 == 2)[0][0]
-    game_array[x] -= 2
-    game_array [x-1] += 2
-    clear_player(9,x+xoffset,2)
-    draw_player(9,x+xoffset-1,'a',2)
+def left(num,jump = False) :
+    x = np.where(game_array%3 == num)[0][0]
+    if x - 1 < 0 :
+        return
+    if  game_array [x-1]%3 != 0 :
+        return
+    if not(jump) and game_array[x-1] == 3 :
+        return
+    if x-2 > 0 and game_array [x-2]%3 != 0:
+        return
+    game_array[x] -= num
+    game_array [x-1] += num
+    clear_player(9,x+xoffset,num)
+    draw_player(9,x+xoffset-1,'a',num)
 
+def right(num,jump = False) :
+    x = np.where(game_array%3 == num)[0][0]
+    if x + 1 >= len(game_array) :
+        return
+    if  game_array [x+1]%3 != 0 :
+        return
+    if not(jump) and game_array[x+1] == 3 :
+        return
+    if x+2 < len(game_array) and game_array [x+2]%3 != 0:
+        return
+    game_array[x] -= num
+    game_array [x+1] += num
+    clear_player(9,x+xoffset,num)
+    draw_player(9,x+xoffset+1,'a',num)
 
+def up(num) :
+    x = np.where(game_array%3 == num)[0][0]
+    clear_player(9,x+xoffset,num)
+    draw_player(9-1,x+xoffset,'a',num)
 
 stage = stage_read()
 game_array = model(stage)
