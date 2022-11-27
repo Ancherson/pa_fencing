@@ -13,6 +13,8 @@ class player:
         self.defending_range = defending_range
         self.blocking_time = blocking_time
         
+        
+players_actions = []
 head = "<o>"
 arm1  = "|_"
 arm2  = "_| "
@@ -30,6 +32,9 @@ yoffset = 9
 
 screen = curses.initscr()
 
+####################################################################################################
+
+
 
 def stage_read():
     if len(sys.argv) == 1:
@@ -42,6 +47,8 @@ def stage_read():
     with open(stage_file) as file :
        return file.readline()
    
+   
+   
 def model(stage):
     game_array = np.zeros(len(stage),dtype=int)
     game_array[stage.find('1')] = 1
@@ -51,6 +58,7 @@ def model(stage):
             game_array[count] = 3
     return game_array
 
+######################################################################################################
 
 def start_stage(game_array):
     curses.noecho()
@@ -64,6 +72,8 @@ def start_stage(game_array):
     for elt in np.where(game_array == 3)[0] :
         screen.addch(yoffset-1,elt+xoffset,obstacle)
     painter(game_array)
+        
+        
         
 def draw_player(y,x,state,num_player,jump = False):
     # clear_player(y,x,state,num_player,jump)
@@ -93,6 +103,7 @@ def draw_player(y,x,state,num_player,jump = False):
         else :
             screen.addstr(y-2,x-2,rest2)
             
+            
 def clear_player(y,x,num_player,jump = False):
     if(jump) :
         y-= 1
@@ -111,9 +122,12 @@ def clear_player(y,x,num_player,jump = False):
         screen.addstr(y-1,x,"  ")
         screen.addstr(y-3,x-2," ")
         screen.addstr(y-2,x-2," ")
+    for elt in np.where(game_array == 3)[0] :
+        screen.addch(yoffset-1,elt+xoffset,obstacle)
+    
+    
     
 def painter(game_array):
-    
     i=0
     y=0
     while(True):
@@ -126,6 +140,8 @@ def painter(game_array):
             right(2)
         if c == curses.KEY_UP:
             up(2)
+        if c == curses.KEY_DOWN:
+            down(2)
         if c == ord('q'):
             left(1)
         if c == ord('d'):
@@ -151,7 +167,10 @@ def left(num,jump = False) :
     game_array [x-1] += num
     clear_player(9,x+xoffset,num)
     draw_player(9,x+xoffset-1,'a',num)
-
+    x = np.where(game_array%3 == (num%2)+1)[0][0]
+    draw_player(9,x+xoffset,'a',(num%2)+1)
+    
+    
 def right(num,jump = False) :
     x = np.where(game_array%3 == num)[0][0]
     if x + 1 >= len(game_array) :
@@ -166,11 +185,23 @@ def right(num,jump = False) :
     game_array [x+1] += num
     clear_player(9,x+xoffset,num)
     draw_player(9,x+xoffset+1,'a',num)
+    x = np.where(game_array%3 == (num%2)+1)[0][0]
+    draw_player(9,x+xoffset,'a',(num%2)+1)
 
 def up(num) :
     x = np.where(game_array%3 == num)[0][0]
     clear_player(9,x+xoffset,num)
     draw_player(9-1,x+xoffset,'a',num)
+    
+def down(num) :
+    x = np.where(game_array%3 == num)[0][0]
+    clear_player(9-1,x+xoffset,num)
+    draw_player(9,x+xoffset,'a',num)
+
+
+
+############################################################################################################
+
 
 stage = stage_read()
 game_array = model(stage)
