@@ -30,6 +30,8 @@ obstacle = "\u2588"
 xoffset = 2
 yoffset = 9
 
+score=0
+
 screen = curses.initscr()
 
 ####################################################################################################
@@ -125,7 +127,10 @@ def clear_player(y,x,num_player,jump = False):
     for elt in np.where(game_array == 3)[0] :
         screen.addch(yoffset-1,elt+xoffset,obstacle)
     
-    
+def draw_score(score_1,score_2):
+    screen.addstr(yoffset-6,(len(game_array)//2)-(len(f"[{score_1} - {score_2}]")//2),f"[{score_1} - {score_2}]")
+
+#######################################################################################################
     
 def painter(game_array):
     i=0
@@ -146,11 +151,17 @@ def painter(game_array):
             left(1)
         if c == ord('d'):
             right(1)
+        if c == ord('+'):
+            global score
+            score += 1
+            draw_score(score,0)
         
     curses.nocbreak()
     screen.keypad(False)
     curses.echo()
     curses.endwin()        
+
+###################################################################################################
 
 
 def left(num,jump = False) :
@@ -165,10 +176,10 @@ def left(num,jump = False) :
         return
     game_array[x] -= num
     game_array [x-1] += num
-    clear_player(9,x+xoffset,num)
-    draw_player(9,x+xoffset-1,'a',num)
+    clear_player(yoffset,x+xoffset,num)
+    draw_player(yoffset,x+xoffset-1,'a',num)
     x = np.where(game_array%3 == (num%2)+1)[0][0]
-    draw_player(9,x+xoffset,'a',(num%2)+1)
+    draw_player(yoffset,x+xoffset,'a',(num%2)+1)
     
     
 def right(num,jump = False) :
@@ -183,20 +194,20 @@ def right(num,jump = False) :
         return
     game_array[x] -= num
     game_array [x+1] += num
-    clear_player(9,x+xoffset,num)
-    draw_player(9,x+xoffset+1,'a',num)
+    clear_player(yoffset,x+xoffset,num)
+    draw_player(yoffset,x+xoffset+1,'a',num)
     x = np.where(game_array%3 == (num%2)+1)[0][0]
-    draw_player(9,x+xoffset,'a',(num%2)+1)
+    draw_player(yoffset,x+xoffset,'a',(num%2)+1)
 
 def up(num) :
     x = np.where(game_array%3 == num)[0][0]
-    clear_player(9,x+xoffset,num)
-    draw_player(9-1,x+xoffset,'a',num)
+    clear_player(yoffset,x+xoffset,num)
+    draw_player(yoffset-1,x+xoffset,'a',num)
     
 def down(num) :
     x = np.where(game_array%3 == num)[0][0]
-    clear_player(9-1,x+xoffset,num)
-    draw_player(9,x+xoffset,'a',num)
+    clear_player(yoffset-1,x+xoffset,num)
+    draw_player(yoffset,x+xoffset,'a',num)
 
 
 
@@ -205,4 +216,6 @@ def down(num) :
 
 stage = stage_read()
 game_array = model(stage)
+draw_score(10,0)
+
 start_stage(game_array)
