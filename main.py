@@ -6,14 +6,15 @@ import threading
 
 class player:
     def __init__(self,num,range,attacking_speed,movement_speed,defending_range,blocking_time,score = 0):
-        self.num = num
         self.attack_range = range
         self.attacking_speed = attacking_speed
         self.movement_speed = movement_speed
         self.defending_range = defending_range
         self.blocking_time = blocking_time
-        self.score = score
         
+        self.score = score
+        self.num = num
+
         
 players_actions = []
 head = "<o>"
