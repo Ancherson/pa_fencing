@@ -14,6 +14,9 @@ class player:
         
         self.score = score
         self.num = num
+    
+    def toString(self) :
+        return (f"{self.attack_range}\n{self.attacking_speed}\n{self.movement_speed}\n{self.defending_range}\n{self.blocking_time}\n{self.score}\n{self.num}\n")
 
         
 players_actions = []
@@ -50,6 +53,14 @@ def stage_read():
     with open(stage_file) as file :
        return file.readline()
    
+def player_read(file_name,num):
+    if file_name.split(".")[-1] != "char" :
+        print("enter a .char file please !")
+    with open(file_name) as file:
+        val = file.read().split()
+        return player(num,val[0],val[1],val[2],val[3],val[4])
+
+            
    
    
 def model(stage):
@@ -216,5 +227,10 @@ def down(num) :
 stage = stage_read()
 game_array = model(stage)
 draw_score(10,0)
+
+# p = player_read("fast_arm.char",1)
+# print(p.toString())
+# with open("save1.ff","x") as save :
+#     save.write(p.toString())
 
 start_stage(game_array)
