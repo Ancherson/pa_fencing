@@ -5,13 +5,14 @@ import numpy as np
 import threading
 
 class player:
-    def __init__(self,num,range,attacking_speed,movement_speed,defending_range,blocking_time):
+    def __init__(self,num,range,attacking_speed,movement_speed,defending_range,blocking_time,score = 0):
         self.num = num
         self.attack_range = range
         self.attacking_speed = attacking_speed
         self.movement_speed = movement_speed
         self.defending_range = defending_range
         self.blocking_time = blocking_time
+        self.score = score
         
         
 players_actions = []
@@ -30,7 +31,6 @@ obstacle = "\u2588"
 xoffset = 2
 yoffset = 9
 
-score=0
 
 screen = curses.initscr()
 
@@ -66,19 +66,16 @@ def start_stage(game_array):
     curses.noecho()
     curses.cbreak()
     screen.keypad(True)
-    # character = "<o>\n |_/\n |\n/|"
-    # character_empty = "   \n    \n  \n  \n \n"
     screen.addstr(yoffset,xoffset,"#"*len(game_array))
     draw_player(yoffset,np.where(game_array%3 == 1)[0][0]+xoffset,'b',1)
     draw_player(yoffset,np.where(game_array%3 == 2)[0][0]+xoffset,'b',2)
     for elt in np.where(game_array == 3)[0] :
         screen.addch(yoffset-1,elt+xoffset,obstacle)
-    painter(game_array)
+    listener(game_array)
         
         
         
 def draw_player(y,x,state,num_player,jump = False):
-    # clear_player(y,x,state,num_player,jump)
     if(jump) :
         y-= 1
     if num_player == 1 :
@@ -132,7 +129,7 @@ def draw_score(score_1,score_2):
 
 #######################################################################################################
     
-def painter(game_array):
+def listener(game_array):
     i=0
     y=0
     while(True):
@@ -151,6 +148,7 @@ def painter(game_array):
             left(1)
         if c == ord('d'):
             right(1)
+            
         if c == ord('+'):
             global score
             score += 1
