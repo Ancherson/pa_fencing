@@ -186,6 +186,8 @@ def left(num,jump = False) :
     if x - 1 < 0 :
         return
     if  game_array [x-1]%3 != 0 :
+        if jump :
+            scoring((num%2)+1)
         return
     if not(jump) and game_array[x-1] == 3 :
         return
@@ -203,7 +205,9 @@ def right(num,jump = False) :
     x = np.where(game_array%3 == num)[0][0]
     if x + 1 >= len(game_array) :
         return
-    if  game_array [x+1]%3 != 0 :
+    if  game_array [x+1]%3 != 0:
+        if jump :
+            scoring((num%2)+1)
         return
     if not(jump) and game_array[x+1] == 3 :
         return
@@ -223,17 +227,30 @@ def up(num) :
     
 def down(num) :
     x = np.where(game_array%3 == num)[0][0]
+    if game_array[x] > 2 :
+        scoring((num%2)+1)
     clear_player(yoffset-1,x+xoffset,num)
     draw_player(yoffset,x+xoffset,'a',num)
 
-def jump_left(num) :
+def jump_left(num,sequence) :
     x = np.where(game_array%3 == num)[0][0]
+    if sequence != 0 or sequence != 3 :
+        left(num,True)
+    elif sequence == 0 :
+        up(num)
+    else :
+        down(num)
     
-    return
 
-def jump_right(num):
+def jump_right(num,sequence):
     x = np.where(game_array%3 == num)[0][0]
-    
+    if sequence != 0 or sequence != 3 :
+            right(num,True)
+    elif sequence == 0 :
+        up(num)
+    else :
+        down(num)
+
 def scoring(num = 0) :
     if num != 0 :
         players[num-1].score += 1
@@ -246,7 +263,6 @@ def attack(num_attacker):
     num_defender = (num_attacker%2)+1
     x = np.where(game_array%3 == num_attacker)[0][0]
     y = np.where(game_array%3 == (num_defender)+1)[0][0]
-    
     
     if num_attacker == 1 :
         if y in game_array[x:x+players_actions[num_attacker-1][0][0]] :
@@ -266,6 +282,15 @@ def attack(num_attacker):
                 scoring(num_attacker)
     
 ############################################################################################################
+
+def runner():
+    while(True) :
+        return
+
+
+
+
+
 
 
 stage = stage_read()
