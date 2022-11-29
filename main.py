@@ -29,7 +29,7 @@ pause = threading.Lock()
 
 players_actions = []
 players = []
-
+running = True
 
 head = "<o>"
 arm1  = "|_"
@@ -97,7 +97,6 @@ def start_stage(game_array):
     draw_player(yoffset,np.where(game_array%3 == 2)[0][0]+xoffset,'b',2)
     for elt in np.where(game_array == 3)[0] :
         screen.addch(yoffset-1,elt+xoffset,obstacle)
-    listener(game_array)
         
 def reset_stage(game_array):
     screen.addstr(yoffset,xoffset,"#"*len(game_array))
@@ -161,90 +160,6 @@ def draw_score(score_1,score_2):
 
 #######################################################################################################
     
-def listener(game_array):
-    while(True):
-        c = screen.getch()
-        
-        if c == curses.KEY_LEFT:
-            threading.Lock.acquire(players_actions)
-            if players_actions[2-1][1] :
-                players_actions[2-1][1] = ('l',[players[2-1].movement_speed])
-            threading.Lock.release(players_actions)
-            
-        elif c == curses.KEY_RIGHT:
-            threading.Lock.acquire(players_actions)
-            if players_actions[2-1][1] :
-                players_actions[2-1][1] = ('r',[players[2-1].movement_speed])
-            threading.Lock.release(players_actions)
-            
-        elif c == ord('l'):
-            threading.Lock.acquire(players_actions)
-            if players_actions[2-1][1] :
-                players_actions[2-1][1] = ('i',[players[2-1].movement_speed])
-            threading.Lock.release(players_actions)
-            
-        elif c == ord('m'):
-            threading.Lock.acquire(players_actions)
-            if players_actions[2-1][1] :
-                players_actions[2-1][1] = ('k',[players[2-1].movement_speed,0])
-            threading.Lock.release(players_actions)
-            
-        elif c == ord('o'):
-            threading.Lock.acquire(players_actions)
-            if players_actions[2-1][0] :
-                players_actions[2-1][0] = ('a',[players[2-1].attacking_speed])
-            threading.Lock.release(players_actions)
-            
-        elif c == ord('p'):
-            threading.Lock.acquire(players_actions)
-            if players_actions[2-1][0] :
-                players_actions[2-1][0] = ('b',[players[2-1].blocking_time])
-            threading.Lock.release(players_actions)    
-            
-                
-                
-                
-        elif c == ord('q'):
-            threading.Lock.acquire(players_actions)
-            if players_actions[1-1][1] :
-                players_actions[1-1][1] = ('l',[players[1-1].movement_speed])
-            threading.Lock.release(players_actions)
-            
-        elif c == ord('d'):
-            threading.Lock.acquire(players_actions)
-            if players_actions[1-1][1] :
-                players_actions[1-1][1] = ('r',[players[1-1].movement_speed])
-            threading.Lock.release(players_actions)   
-                 
-        elif c == ord('a'):
-            threading.Lock.acquire(players_actions)
-            if players_actions[1-1][1] :
-                players_actions[1-1][1] = ('i',[players[1-1].movement_speed])
-            threading.Lock.release(players_actions)
-            
-        elif c == ord('e'):
-            threading.Lock.acquire(players_actions)
-            if players_actions[1-1][1] :
-                players_actions[1-1][1] = ('k',[players[1-1].movement_speed])
-            threading.Lock.release(players_actions)
-            
-        elif c == ord('z'):
-            threading.Lock.acquire(players_actions)
-            if players_actions[1-1][0] :
-                players_actions[1-1][0] = ('a',[players[1-1].attacking_speed])
-            threading.Lock.release(players_actions) 
-            
-        elif c == ord('s'):
-            threading.Lock.acquire(players_actions)
-            if players_actions[1-1][0] :
-                players_actions[1-1][0] = ('b',[players[1-1].blocking_time])
-            threading.Lock.release(players_actions)   
-        elif c == ord('x'):
-            break        
-    curses.nocbreak()
-    screen.keypad(False)
-    curses.echo()
-    curses.endwin()        
 
 ###################################################################################################
 
@@ -333,7 +248,15 @@ def jump_right(num,sequence):
 
 def scoring(num = 0) :
     if num != 0 :
-        players[num-1] += 1
+        players[num-1].score += 1
+    if players[num-1].score == 15 :
+        running = False
+        curses.nocbreak()
+        screen.keypad(False)
+        curses.echo()
+        curses.endwin()
+        print(f"PLayer {num} won ! {players[num-1].score} - {players[num%2].score}")        
+        return
     global game_array
     game_array = model(stage)
     reset_stage()
@@ -366,7 +289,7 @@ def attack(num_attacker):
 ############################################################################################################
 
 def loop(fps):
-    while(True) :
+    while(running) :
         time.sleep(1/fps)
         threading.Lock.acquire(pause)
         threading.Lock.release(pause)
@@ -379,7 +302,7 @@ def loop(fps):
         alarm_clock.clear()
     
 def actualizer():
-    while(True):
+    while(running):
         alarm_clock.wait()
         threading.Lock.acquire(players_actions)
         for i in len(players_actions) :
@@ -404,10 +327,94 @@ def actualizer():
                 action = ()
                     
         threading.Lock.release(players_actions)
+    
+    
+    
+def listener():
+    while(running):
+        c = screen.getch()
         
-
-
-
+        if c == curses.KEY_LEFT:
+            threading.Lock.acquire(players_actions)
+            if players_actions[2-1][1] :
+                players_actions[2-1][1] = ('l',[players[2-1].movement_speed])
+            threading.Lock.release(players_actions)
+            
+        elif c == curses.KEY_RIGHT:
+            threading.Lock.acquire(players_actions)
+            if players_actions[2-1][1] :
+                players_actions[2-1][1] = ('r',[players[2-1].movement_speed])
+            threading.Lock.release(players_actions)
+            
+        elif c == ord('l'):
+            threading.Lock.acquire(players_actions)
+            if players_actions[2-1][1] :
+                players_actions[2-1][1] = ('i',[players[2-1].movement_speed])
+            threading.Lock.release(players_actions)
+            
+        elif c == ord('m'):
+            threading.Lock.acquire(players_actions)
+            if players_actions[2-1][1] :
+                players_actions[2-1][1] = ('k',[players[2-1].movement_speed,0])
+            threading.Lock.release(players_actions)
+            
+        elif c == ord('o'):
+            threading.Lock.acquire(players_actions)
+            if players_actions[2-1][0] :
+                players_actions[2-1][0] = ('a',[players[2-1].attacking_speed])
+            threading.Lock.release(players_actions)
+            
+        elif c == ord('p'):
+            threading.Lock.acquire(players_actions)
+            if players_actions[2-1][0] :
+                players_actions[2-1][0] = ('b',[players[2-1].blocking_time])
+            threading.Lock.release(players_actions)    
+            
+                
+                
+                
+        elif c == ord('q'):
+            threading.Lock.acquire(players_actions)
+            if players_actions[1-1][1] :
+                players_actions[1-1][1] = ('l',[players[1-1].movement_speed])
+            threading.Lock.release(players_actions)
+            
+        elif c == ord('d'):
+            threading.Lock.acquire(players_actions)
+            if players_actions[1-1][1] :
+                players_actions[1-1][1] = ('r',[players[1-1].movement_speed])
+            threading.Lock.release(players_actions)   
+                 
+        elif c == ord('a'):
+            threading.Lock.acquire(players_actions)
+            if players_actions[1-1][1] :
+                players_actions[1-1][1] = ('i',[players[1-1].movement_speed])
+            threading.Lock.release(players_actions)
+            
+        elif c == ord('e'):
+            threading.Lock.acquire(players_actions)
+            if players_actions[1-1][1] :
+                players_actions[1-1][1] = ('k',[players[1-1].movement_speed])
+            threading.Lock.release(players_actions)
+            
+        elif c == ord('z'):
+            threading.Lock.acquire(players_actions)
+            if players_actions[1-1][0] :
+                players_actions[1-1][0] = ('a',[players[1-1].attacking_speed])
+            threading.Lock.release(players_actions) 
+            
+        elif c == ord('s'):
+            threading.Lock.acquire(players_actions)
+            if players_actions[1-1][0] :
+                players_actions[1-1][0] = ('b',[players[1-1].blocking_time])
+            threading.Lock.release(players_actions)   
+        elif c == ord('x'):
+            break        
+    curses.nocbreak()
+    screen.keypad(False)
+    curses.echo()
+    curses.endwin() 
+    running = False       
 
 
 
@@ -416,9 +423,13 @@ stage = stage_read()
 game_array = model(stage)
 draw_score(10,0)
 
-# p = player_read("fast_arm.char",1)
-# print(p.toString())
-# with open("save1.ff","x") as save :
-#     save.write(p.toString())
+p = player_read("fast_arm.char",1)
+p2 = player_read("fast_arm.char",2)
 
+thread_listening = threading.Thread(listener())
+thread_actualizer = threading.Thread(actualizer())
+thread_fps = threading.Thread(loop())
 start_stage(game_array)
+thread_listening.start()
+thread_actualizer.start()
+thread_actualizer.start()
