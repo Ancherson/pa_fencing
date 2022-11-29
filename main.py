@@ -5,7 +5,7 @@ import numpy as np
 import threading
 
 class player:
-    def __init__(self,num,range,attacking_speed,movement_speed,defending_range,blocking_time,score = 0):
+    def __init__(self,num,range,attacking_speed,movement_speed,defending_range,blocking_time,score = 0,state = ('r',)):
         self.attack_range = range
         self.attacking_speed = attacking_speed
         self.movement_speed = movement_speed
@@ -14,19 +14,22 @@ class player:
         
         self.score = score
         self.num = num
+        
+        self.state = state
     
     def toString(self) :
         return (f"{self.attack_range}\n{self.attacking_speed}\n{self.movement_speed}\n{self.defending_range}\n{self.blocking_time}\n{self.score}\n{self.num}\n")
 
         
 players_actions = []
+players = []
 head = "<o>"
 arm1  = "|_"
 arm2  = "_| "
 hips = "|"
 legs1 = "/|"
 legs2 = "|\\"
-attack = "_"
+attack_char = "_"
 block1 = "|"
 rest1 = "\\"
 rest2 = "/"
@@ -85,6 +88,12 @@ def start_stage(game_array):
         screen.addch(yoffset-1,elt+xoffset,obstacle)
     listener(game_array)
         
+def reset(game_array):
+    screen.addstr(yoffset,xoffset,"#"*len(game_array))
+    draw_player(yoffset,np.where(game_array%3 == 1)[0][0]+xoffset,'b',1)
+    draw_player(yoffset,np.where(game_array%3 == 2)[0][0]+xoffset,'b',2)
+    for elt in np.where(game_array == 3)[0] :
+        screen.addch(yoffset-1,elt+xoffset,obstacle)
         
         
 def draw_player(y,x,state,num_player,jump = False):
@@ -96,7 +105,7 @@ def draw_player(y,x,state,num_player,jump = False):
         screen.addstr(y-2,x,hips)
         screen.addstr(y-1,x-1,legs1)
         if state == 'a':
-            screen.addstr(y-3,x+2,attack)
+            screen.addstr(y-3,x+2,attack_char)
         elif state == 'b':
             screen.addstr(y-3,x+2,block1)
         else :
@@ -108,7 +117,7 @@ def draw_player(y,x,state,num_player,jump = False):
         screen.addstr(y-2,x,hips)
         screen.addstr(y-1,x,legs2)
         if state == 'a':
-            screen.addstr(y-3,x-2,attack)
+            screen.addstr(y-3,x-2,attack_char)
         elif state == 'b':
             screen.addstr(y-3,x-2,block1)
         else :
@@ -160,11 +169,9 @@ def listener(game_array):
             left(1)
         if c == ord('d'):
             right(1)
-            
         if c == ord('+'):
-            global score
-            score += 1
-            draw_score(score,0)
+            i+=1
+            draw_score(i,0)
         
     curses.nocbreak()
     screen.keypad(False)
@@ -219,8 +226,45 @@ def down(num) :
     clear_player(yoffset-1,x+xoffset,num)
     draw_player(yoffset,x+xoffset,'a',num)
 
+def jump_left(num) :
+    x = np.where(game_array%3 == num)[0][0]
+    
+    return
 
-
+def jump_right(num):
+    x = np.where(game_array%3 == num)[0][0]
+    
+def scoring(num = 0) :
+    if num != 0 :
+        players[num-1].score += 1
+    global game_array
+    game_array = model(stage)
+    reset()
+    return
+    
+def attack(num_attacker):
+    num_defender = (num_attacker%2)+1
+    x = np.where(game_array%3 == num_attacker)[0][0]
+    y = np.where(game_array%3 == (num_defender)+1)[0][0]
+    
+    
+    if num_attacker == 1 :
+        if y in game_array[x:x+players_actions[num_attacker-1][0][0]] :
+            if players_actions[num_defender-1][0][0] == 'b' and players_actions[num_defender-1][0][1][1] >= y-x:
+                return
+            elif players_actions[num_defender-1][0][0] == 'a' and players_actions[num_defender-1][0][1][1] >= y-x :
+                scoring()
+            else :
+                scoring(num_attacker)
+    elif num_attacker == 2 :
+        if y in game_array[x-players_actions[num_attacker-1][0][0]:x] :
+            if players_actions[num_defender-1][0][0] == 'b' and players_actions[num_defender-1][0][1][1] >= x-y:
+                return
+            elif players_actions[num_defender-1][0][0] == 'a' and players_actions[num_defender-1][0][1][1] >= x-y :
+                scoring()
+            else :
+                scoring(num_attacker)
+    
 ############################################################################################################
 
 
