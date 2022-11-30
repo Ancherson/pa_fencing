@@ -106,14 +106,19 @@ def start_stage(game_array):
         
 def reset_stage():
     
-    for i in range (0,5):
+    for i in range (0,6):
         screen.addstr(yoffset-i,xoffset," "*len(game_array))
     screen.refresh()
     screen.addstr(yoffset,xoffset,"#"*len(game_array))
-    draw_player(yoffset,np.where(game_array%3 == 1)[0][0]+xoffset,'b',1)
-    draw_player(yoffset,np.where(game_array%3 == 2)[0][0]+xoffset,'b',2)
+    draw_player(yoffset,np.where(game_array%3 == 1)[0][0]+xoffset,'s',1)
+    draw_player(yoffset,np.where(game_array%3 == 2)[0][0]+xoffset,'s',2)
     for elt in np.where(game_array == 3)[0] :
         screen.addch(yoffset-1,elt+xoffset,obstacle)
+    screen.refresh()
+    
+def clear_stage():
+    for i in range (0,5):
+        screen.addstr(yoffset-i,xoffset," "*len(game_array))
     screen.refresh()
         
         
@@ -236,6 +241,7 @@ def down(num) :
     x = np.where(game_array%3 == num)[0][0]
     if game_array[x] > 2 :
         scoring((num%2)+1)
+        return
     clear_player(yoffset-1,x+xoffset,num)
     draw_player(yoffset,x+xoffset,players[num-1].state,num)
     screen.refresh()
@@ -279,12 +285,16 @@ def scoring(num = 0) :
         players[num-1].score += 1
     if players[num-1].score == 15 :
         finish.set()
+        alarm_clock.set()
         curses.nocbreak()
         screen.keypad(False)
         curses.echo()
         curses.endwin()
+        curses.nocbreak()
         print(f"PLayer {num} won ! {players[0].score} - {players[1].score}")        
         return
+
+    clear_stage()
     global game_array
     game_array = model(stage)
     reset_stage()
@@ -336,6 +346,7 @@ def actualizer():
                     if action[0] == 'a' and players[i].state != 'a':
                         players[i].state = 'a'
                         x = np.where(game_array%3 == i+1)[0][0]
+                        #need to look for sequence
                         if players_actions[i][0][0] == 'i' or players_actions[i][0][0] == 'k' :
                             clear_player(yoffset,x+xoffset,i+1,True)
                             draw_player(yoffset,x+xoffset,'a',i+1,True)
@@ -386,6 +397,7 @@ def actualizer():
         players_lock.release()
         if finish.is_set() :
             break
+    print("sortie actualizer")
     
     
 def listener():
@@ -474,6 +486,8 @@ def listener():
                 print(elt.state)
         elif c == ord('x'):
             break        
+        if finish.is_set() :
+            break
     curses.nocbreak()
     screen.keypad(False)
     curses.echo()
@@ -481,6 +495,7 @@ def listener():
     finish.set()
     alarm_clock.set()
     finish.set()
+    print("sortie listener")
 
 
 
@@ -496,7 +511,7 @@ players = [p,p2]
 start_stage(game_array)
 thread_listening = threading.Thread(target=listener,)
 thread_actualizer = threading.Thread(target=actualizer,)
-thread_fps = threading.Thread(target=loop,args = (2,))
+thread_fps = threading.Thread(target=loop,args = (100,))
 thread_fps.start()
 thread_listening.start()
 thread_actualizer.start()
