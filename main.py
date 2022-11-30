@@ -54,6 +54,7 @@ yoffset = 9
 
 screen = curses.initscr()
 
+
 ####################################################################################################
 
 # INITIALIZING FUNCTION
@@ -94,9 +95,12 @@ def model(stage):
 # DRAWING FUNCTIONS
 
 def start_stage(game_array):
-    # curses.noecho()
+    curses.noecho()
+    curses.curs_set(0)
+    screen.timeout(300)
     curses.cbreak()
     screen.keypad(True)
+    screen.resize(10, 60)
     screen.addstr(yoffset,xoffset,"#"*len(game_array))
     draw_player(yoffset,np.where(game_array%3 == 1)[0][0]+xoffset,'s',1)
     draw_player(yoffset,np.where(game_array%3 == 2)[0][0]+xoffset,'s',2)
@@ -286,11 +290,12 @@ def scoring(num = 0) :
     if players[num-1].score == 15 :
         finish.set()
         alarm_clock.set()
-        curses.nocbreak()
         screen.keypad(False)
         curses.echo()
-        curses.endwin()
+        curses.curs_set(1)
         curses.nocbreak()
+        curses.endwin()
+
         print(f"PLayer {num} won ! {players[0].score} - {players[1].score}")        
         return
 
@@ -332,7 +337,6 @@ def loop(fps):
         alarm_clock.set()
         if finish.is_set() :
             break
-    print("salut")
     alarm_clock.set()
     
 def actualizer():
@@ -397,12 +401,20 @@ def actualizer():
         players_lock.release()
         if finish.is_set() :
             break
-    print("sortie actualizer")
     
     
 def listener():
     while(True):
         c = screen.getch()
+        if pause.locked() :
+            if c == curses.KEY_F1 :
+                pause.release()
+                continue
+            elif c == ord('x'):
+                break  
+            else :
+                continue
+            
         
         if c == curses.KEY_LEFT:
             players_lock.acquire()
@@ -479,24 +491,27 @@ def listener():
                 players_actions[1-1][0] = ('b',[players[1-1].blocking_time])
             players_lock.release()   
             
-        elif c == ord('?'):
-            print(players_actions)
-        elif c == ord(' '):
-            for elt in players :
-                print(elt.state)
         elif c == ord('x'):
             break        
+        elif c == curses.KEY_F1 :
+            if pause.locked():
+                pause.release()
+            else :
+                pause.acquire()
+                
         if finish.is_set() :
-            break
+            break   
+        
+        
+    if pause.locked():
+        pause.release() 
+    finish.set()
+    alarm_clock.set()
     curses.nocbreak()
     screen.keypad(False)
     curses.echo()
+    curses.curs_set(1)
     curses.endwin() 
-    finish.set()
-    alarm_clock.set()
-    finish.set()
-    print("sortie listener")
-
 
 
 
@@ -511,7 +526,7 @@ players = [p,p2]
 start_stage(game_array)
 thread_listening = threading.Thread(target=listener,)
 thread_actualizer = threading.Thread(target=actualizer,)
-thread_fps = threading.Thread(target=loop,args = (100,))
+thread_fps = threading.Thread(target=loop,args = (10,))
 thread_fps.start()
 thread_listening.start()
 thread_actualizer.start()
