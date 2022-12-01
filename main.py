@@ -97,7 +97,7 @@ def reset_stage():
     screen.refresh()
     
 def clear_stage():
-    for i in range (-3,yoffset):
+    for i in range (-3,yoffset+1):
         screen.addstr(yoffset-i,xoffset," "*len(game_array))
     screen.refresh()
         

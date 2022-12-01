@@ -1,4 +1,4 @@
-# PA Fencing
+# Fancy Fencing
 
 ## Presentation
 
@@ -54,6 +54,10 @@ You enter the **frame rate** and the game starts.
 
 The goal is to score **15** by attacking your opponent. Be careful he can block so that you don't score. Your score is on top of the stage.
 
+The differente stat of players :
+
+![attack](ressources/attack.JPG)  ![block](ressources/block.JPG) ![rest](ressources/rest.JPG)
+Attack - Block - Rest
 To see the commands for each players you juste have to press **F1**, a menu will appear with the commands.
 
 ![stage-load](ressources/pause.JPG)
