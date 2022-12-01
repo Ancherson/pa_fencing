@@ -504,6 +504,10 @@ def listener():
         
     if pause.locked():
         pause.release() 
+        
+    if finish.isSet() :
+        return
+    
     finish.set()
     alarm_clock.set()
     curses.nocbreak()
