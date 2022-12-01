@@ -71,6 +71,8 @@ def stage_read():
     with open(stage_file) as file :
        return file.readline()
    
+   
+   
 def player_read(file_name,num):
     if file_name.split(".")[-1] != "char" :
         print("enter a .char file please !")
@@ -100,28 +102,37 @@ def start_stage(game_array):
     screen.timeout(300)
     curses.cbreak()
     screen.keypad(True)
-    screen.resize(10, 60)
     screen.addstr(yoffset,xoffset,"#"*len(game_array))
     draw_player(yoffset,np.where(game_array%3 == 1)[0][0]+xoffset,'s',1)
     draw_player(yoffset,np.where(game_array%3 == 2)[0][0]+xoffset,'s',2)
     for elt in np.where(game_array == 3)[0] :
         screen.addch(yoffset-1,elt+xoffset,obstacle)
+    screen.refresh()
+    
+def draw_score(score_1,score_2):
+    screen.addstr(yoffset-6,(len(game_array)//2)-(len(f"[{score_1} - {score_2}]")//2),f"[{score_1} - {score_2}]")
     screen.refresh()
         
 def reset_stage():
-    
-    for i in range (0,6):
+    for i in range (0,7):
         screen.addstr(yoffset-i,xoffset," "*len(game_array))
     screen.refresh()
     screen.addstr(yoffset,xoffset,"#"*len(game_array))
-    draw_player(yoffset,np.where(game_array%3 == 1)[0][0]+xoffset,'s',1)
-    draw_player(yoffset,np.where(game_array%3 == 2)[0][0]+xoffset,'s',2)
+    if players_actions[0][1] and  (players_actions[0][1][0] == 'i' or players_actions[0][1][0] == 'k'):
+        draw_player(yoffset,np.where(game_array%3 == 1)[0][0]+xoffset,players[0].state,1,True)
+    else :
+        draw_player(yoffset,np.where(game_array%3 == 1)[0][0]+xoffset,players[0].state,1)
+    if players_actions[1][1] and  (players_actions[1][1][0] == 'i' or players_actions[1][1][0] == 'k'):
+        draw_player(yoffset,np.where(game_array%3 == 2)[0][0]+xoffset,players[1].state,2,True)
+    else :
+        draw_player(yoffset,np.where(game_array%3 == 2)[0][0]+xoffset,players[1].state,2)
     for elt in np.where(game_array == 3)[0] :
         screen.addch(yoffset-1,elt+xoffset,obstacle)
+    draw_score(players[0].score,players[1].score)
     screen.refresh()
     
 def clear_stage():
-    for i in range (0,5):
+    for i in range (0,7):
         screen.addstr(yoffset-i,xoffset," "*len(game_array))
     screen.refresh()
         
@@ -176,9 +187,7 @@ def clear_player(y,x,num_player,jump = False):
         screen.addch(yoffset-1,elt+xoffset,obstacle)
     screen.refresh()
         
-def draw_score(score_1,score_2):
-    screen.addstr(yoffset-6,(len(game_array)//2)-(len(f"[{score_1} - {score_2}]")//2),f"[{score_1} - {score_2}]")
-    screen.refresh()
+
 #######################################################################################################
     
 
@@ -302,11 +311,9 @@ def scoring(num = 0) :
     clear_stage()
     global game_array
     game_array = model(stage)
+    for i in range(len(players_actions)) :
+            players_actions[i] = [(),()]
     reset_stage()
-    draw_score(players[0].score,players[1].score)
-    for player in players_actions :
-        for action in player :
-            action = ()
     
 def attack(num_attacker):
     num_defender = (num_attacker%2)+1
@@ -408,6 +415,9 @@ def listener():
         if pause.locked() :
             if c == curses.KEY_F1 :
                 pause.release()
+                players_lock.acquire()
+                reset_stage()
+                players_lock.release()
                 continue
             elif c == ord('x'):
                 break  
