@@ -148,7 +148,7 @@ def show_pause():
     screen.addstr(7,xoffset,"Attack :     Z | O")
     screen.addstr(8,xoffset,"Block :      S | P")
     screen.addstr(9,xoffset,"Quit :         X")
-    screen.addstr(9,xoffset,"Quit & Save:   W")
+    screen.addstr(10,xoffset,"Quit & Save:   W")
 
     screen.refresh()
     return
