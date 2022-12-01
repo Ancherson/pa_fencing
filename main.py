@@ -46,14 +46,6 @@ def player_read(file_name,num):
         val = file.read().split()
         return player(num,val[0],val[1],val[2],val[3],val[4])
 
-
-def load(file_name) :
-    with open(file_name) as file :
-        stage = file.readline()
-        val = file.readlines()
-        player1 = player(1,val[0],val[1],val[2],val[3],val[4],val[5],val[6])
-        player2 = player(1,val[7],val[8],val[9],val[10],val[11],val[12],val[13])
-        return (stage,[player1,player2])
    
 def model(stage):
     game_array = np.zeros(len(stage),dtype=int)
@@ -215,6 +207,14 @@ def save():
         f.write(scene+'\n')
         f.write(players[0].toString())
         f.write(players[1].toString())
+        
+def load(file_name) :
+    with open(file_name) as file :
+        stage = file.readline()
+        val = file.readlines()
+        player1 = player(1,val[0],val[1],val[2],val[3],val[4],val[5],val[6])
+        player2 = player(1,val[7],val[8],val[9],val[10],val[11],val[12],val[13])
+        return (stage,[player1,player2])
 
 ###################################################################################################
 
@@ -329,16 +329,15 @@ def scoring(num = 0) :
         curses.curs_set(1)
         curses.nocbreak()
         curses.endwin()
-
         print(f"PLayer {num} won ! {players[0].score} - {players[1].score}")        
         return
-
     clear_stage()
     global game_array
     game_array = model(stage)
     for i in range(len(players_actions)) :
             players_actions[i] = [(),()]
     reset_stage()
+    
     
 def attack(num_attacker):
     num_defender = (num_attacker%2)+1
@@ -356,6 +355,8 @@ def attack(num_attacker):
 ############################################################################################################
 
 # THREAD FUNCTIONS
+
+
 def loop(fps):
     while(True) :
         time.sleep(1/fps)
@@ -615,6 +616,9 @@ if c == 'P' :
         p1 = player_read("patient_blocker.char",1)
     elif c == '4':
         p1 = player_read("long_arm.char",1)
+    else :
+        print("wrong choice ! picking you Fast Legs")
+        p1 = player_read("fast_legs.char",1)
         
     c = input("choose player 1 :\n 1 -Fast arm\n 2 -Fast legs \n 3 -Patient Blocker \n 4 -Long Arm\n")
     if c == '1' :
@@ -625,6 +629,9 @@ if c == 'P' :
         p2 = player_read("patient_blocker.char",2)
     elif c == '4':
         p2 = player_read("long_arm.char",2)
+    else :
+        print("wrong choice ! picking you Fast Legs")
+        p1 = player_read("fast_legs.char",2)
         
     players = [p1,p2]
     
@@ -641,8 +648,9 @@ else :
 fps = input("Enter frame rate (fps) :\n")   
 while not RepresentsInt(fps) :
     fps = input("Enter frame rate (fps) :\n")   
-    
 fps = int(fps)
+
+
 screen = curses.initscr()
 start_stage(game_array)
 
