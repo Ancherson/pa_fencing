@@ -6,7 +6,7 @@ import threading
 import time
 
 class player:
-    def __init__(self,num,range,attacking_speed,movement_speed,defending_range,blocking_time,score = 0,state = 'r'):
+    def __init__(self,num,range,attacking_speed,movement_speed,defending_range,blocking_time,score = 0,state = 's'):
         self.attack_range = int(range)
         self.attacking_speed = int(attacking_speed)
         self.movement_speed = int(movement_speed)
@@ -62,7 +62,7 @@ screen = curses.initscr()
 
 def stage_read():
     if len(sys.argv) == 1:
-        stage_file = os.path.abspath("/mnt/d/Informatique/M1/Prog_av/pa_fencing/stage1.ffscene")
+        stage_file = ("stage1.ffscene")
     else :
         if sys.argv[1].split(".")[-1] != "ffscene" :
             print("enter a .ffscene file please !")
@@ -155,8 +155,8 @@ def draw_player(y,x,state,num_player,jump = False):
     screen.refresh()
             
 def clear_player(y,x,num_player,jump = False):
-    if(jump) :
-        y-= 1
+    if jump :
+        y-=1
     if num_player == 1 :
         screen.addstr(y-4,x-1,"   ")
         screen.addstr(y-3,x,"  ")
@@ -207,7 +207,7 @@ def left(num,jump = False) :
         clear_player(yoffset,x+xoffset,num)   
         draw_player(yoffset,x+xoffset-1,players[num-1].state,num)
     x = np.where(game_array%3 == (num%2)+1)[0][0]
-    draw_player(yoffset,x+xoffset,players[num-1].state,(num%2)+1)
+    draw_player(yoffset,x+xoffset,players[(num%2)].state,(num%2)+1)
     screen.refresh()
     
     
@@ -232,7 +232,7 @@ def right(num,jump = False) :
         clear_player(yoffset,x+xoffset,num)
         draw_player(yoffset,x+xoffset+1,players[num-1].state,num)
     x = np.where(game_array%3 == (num%2)+1)[0][0]
-    draw_player(yoffset,x+xoffset,players[num-1].state,(num%2)+1)
+    draw_player(yoffset,x+xoffset,players[(num%2)].state,(num%2)+1)
     screen.refresh()
 
 def up(num) :
@@ -350,8 +350,7 @@ def actualizer():
                     if action[0] == 'a' and players[i].state != 'a':
                         players[i].state = 'a'
                         x = np.where(game_array%3 == i+1)[0][0]
-                        #need to look for sequence
-                        if players_actions[i][0][0] == 'i' or players_actions[i][0][0] == 'k' :
+                        if (players_actions[i][1]) and (players_actions[i][1][0] == 'i' or players_actions[i][1][0] == 'k') :
                             clear_player(yoffset,x+xoffset,i+1,True)
                             draw_player(yoffset,x+xoffset,'a',i+1,True)
                         else :
@@ -361,7 +360,7 @@ def actualizer():
                     if action[0] == 'b' and players[i].state != 'b':
                         players[i].state = 'b'
                         x = np.where(game_array%3 == i+1)[0][0]
-                        if players_actions[i][0][0] == 'i' or players_actions[i][0][0] == 'k' :
+                        if (players_actions[i][1]) and (players_actions[i][1][0] == 'i' or players_actions[i][1][0] == 'k') :
                             clear_player(yoffset,x+xoffset,i+1,True)
                             draw_player(yoffset,x+xoffset,'b',i+1,True)
                         else :
@@ -371,7 +370,7 @@ def actualizer():
                         
             else :
                 if players[i].state != 's' :
-                    if (players_actions[i][0]) and (players_actions[i][0][0] == 'i' or players_actions[i][0][0] == 'k') :
+                    if (players_actions[i][1]) and (players_actions[i][1][0] == 'i' or players_actions[i][1][0] == 'k') :
                         x = np.where(game_array%3 == i+1)[0][0]
                         clear_player(yoffset,x+xoffset,i+1,True)
                         draw_player(yoffset,x+xoffset,'s',i+1,True)
