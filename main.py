@@ -114,8 +114,8 @@ def draw_score(score_1,score_2):
     screen.refresh()
         
 def reset_stage():
-    for i in range (0,7):
-        screen.addstr(yoffset-i,xoffset," "*len(game_array))
+    
+    clear_stage()
     screen.refresh()
     screen.addstr(yoffset,xoffset,"#"*len(game_array))
     if players_actions[0][1] and  (players_actions[0][1][0] == 'i' or players_actions[0][1][0] == 'k'):
@@ -132,10 +132,25 @@ def reset_stage():
     screen.refresh()
     
 def clear_stage():
-    for i in range (0,7):
+    for i in range (0,yoffset+1):
         screen.addstr(yoffset-i,xoffset," "*len(game_array))
     screen.refresh()
         
+def show_pause():
+    clear_stage()
+    screen.addstr(0,xoffset,"Menu Pause")
+    screen.addstr(1,xoffset,"Commands :")
+    screen.addstr(2,xoffset,"      Player 1 | Player 2")
+    screen.addstr(3,xoffset,"Left :       Q | \u2190")
+    screen.addstr(4,xoffset,"Right :      D | \u2192")
+    screen.addstr(5,xoffset,"Jump left :  A | L")
+    screen.addstr(6,xoffset,"Jump Right : E | M")
+    screen.addstr(7,xoffset,"Attack :     Z | O")
+    screen.addstr(8,xoffset,"Block :      S | P")
+    screen.addstr(9,xoffset,"Quit :         X")
+
+    screen.refresh()
+    return
         
 def draw_player(y,x,state,num_player,jump = False):
     if(jump) :
@@ -499,14 +514,13 @@ def listener():
             if not players_actions[1-1][0] :
                 players_actions[1-1][0] = ('b',[players[1-1].blocking_time])
             players_lock.release()   
-            
-        elif c == ord('x'):
-            break        
+                
         elif c == curses.KEY_F1 :
             if pause.locked():
                 pause.release()
             else :
                 pause.acquire()
+                show_pause()
                 
         if finish.is_set() :
             break   
