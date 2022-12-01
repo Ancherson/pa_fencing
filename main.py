@@ -22,53 +22,19 @@ class player:
         return (f"{self.attack_range}\n{self.attacking_speed}\n{self.movement_speed}\n{self.defending_range}\n{self.blocking_time}\n{self.score}\n{self.num}\n")
    
    
-   
-    
-alarm_clock = threading.Event()
-finish = threading.Event()
-finish.clear()
-
-pause = threading.Lock()
-players_lock = threading.Lock()
-
-
-players_actions = [[(),()],[(),()]]
-players = []
-running = True
-
-head = "<o>"
-arm1  = "|_"
-arm2  = "_| "
-hips = "|"
-legs1 = "/|"
-legs2 = "|\\"
-attack_char = "_"
-block1 = "|"
-rest1 = "\\"
-rest2 = "/"
-
-obstacle = "\u2588"
-xoffset = 2
-yoffset = 9
-
-
-screen = curses.initscr()
-
 
 ####################################################################################################
 
 # INITIALIZING FUNCTION
 
 
-def stage_read():
-    if len(sys.argv) == 1:
-        stage_file = ("stage1.ffscene")
+def stage_read(file_name):
+    if file_name == '':
+        file_name = ("default.ffscene")
     else :
-        if sys.argv[1].split(".")[-1] != "ffscene" :
-            print("enter a .ffscene file please !")
-        stage_file = os.path.abspath(sys.argv[1])
-
-    with open(stage_file) as file :
+        while file_name.split(".")[-1] != "ffscene" :
+            file_name = input("enter a .ffscene file please !")
+    with open(file_name) as file :
        return file.readline()
    
    
@@ -80,8 +46,14 @@ def player_read(file_name,num):
         val = file.read().split()
         return player(num,val[0],val[1],val[2],val[3],val[4])
 
-            
-   
+
+def load(file_name) :
+    with open(file_name) as file :
+        stage = file.readline()
+        val = file.readlines()
+        player1 = player(1,val[0],val[1],val[2],val[3],val[4],val[5],val[6])
+        player2 = player(1,val[7],val[8],val[9],val[10],val[11],val[12],val[13])
+        return (stage,[player1,player2])
    
 def model(stage):
     game_array = np.zeros(len(stage),dtype=int)
@@ -108,6 +80,7 @@ def start_stage(game_array):
     for elt in np.where(game_array == 3)[0] :
         screen.addch(yoffset-1,elt+xoffset,obstacle)
     screen.refresh()
+    draw_score(players[0].score,players[1].score)
     
 def draw_score(score_1,score_2):
     screen.addstr(yoffset-6,(len(game_array)//2)-(len(f"[{score_1} - {score_2}]")//2),f"[{score_1} - {score_2}]")
@@ -132,22 +105,22 @@ def reset_stage():
     screen.refresh()
     
 def clear_stage():
-    for i in range (0,yoffset+1):
+    for i in range (-3,yoffset):
         screen.addstr(yoffset-i,xoffset," "*len(game_array))
     screen.refresh()
         
 def show_pause():
     clear_stage()
-    screen.addstr(0,xoffset,"Menu Pause")
-    screen.addstr(1,xoffset,"Commands :")
-    screen.addstr(2,xoffset,"      Player 1 | Player 2")
-    screen.addstr(3,xoffset,"Left :       Q | \u2190")
-    screen.addstr(4,xoffset,"Right :      D | \u2192")
-    screen.addstr(5,xoffset,"Jump left :  A | L")
-    screen.addstr(6,xoffset,"Jump Right : E | M")
-    screen.addstr(7,xoffset,"Attack :     Z | O")
-    screen.addstr(8,xoffset,"Block :      S | P")
-    screen.addstr(9,xoffset,"Quit :         X")
+    screen.addstr(0,xoffset, "Menu Pause")
+    screen.addstr(1,xoffset, "Commands :")
+    screen.addstr(2,xoffset, "      Player 1 | Player 2")
+    screen.addstr(3,xoffset, "Left :       Q | \u2190")
+    screen.addstr(4,xoffset, "Right :      D | \u2192")
+    screen.addstr(5,xoffset, "Jump left :  A | L")
+    screen.addstr(6,xoffset, "Jump Right : E | M")
+    screen.addstr(7,xoffset, "Attack :     Z | O")
+    screen.addstr(8,xoffset, "Block :      S | P")
+    screen.addstr(9,xoffset, "Quit :         X")
     screen.addstr(10,xoffset,"Quit & Save:   W")
 
     screen.refresh()
@@ -214,10 +187,16 @@ def save():
     screen.keypad(False)
     curses.echo()
     curses.curs_set(1)
-    file = input("Enter a file name :")
+    screen.timeout(-300)
+    print("Enter a file name :\n")
+    file = screen.getstr()
     while os.path.exists(file) :
-        print("file already exist")
-        file = input("Enter a file name :")
+        print("file already exist\n")
+        print("Enter a file name :\n")
+        file = screen.getstr()
+        if file == " " :
+            file = "Save"
+    screen.timeout(300)
     with open(file,"x") as f:
         scene = ""
         for elt in game_array :
@@ -376,6 +355,7 @@ def attack(num_attacker):
     
 ############################################################################################################
 
+# THREAD FUNCTIONS
 def loop(fps):
     while(True) :
         time.sleep(1/fps)
@@ -576,21 +556,100 @@ def listener():
     curses.curs_set(1)
     curses.endwin() 
 
+alarm_clock = threading.Event()
+finish = threading.Event()
+finish.clear()
 
 
-stage = stage_read()
-game_array = model(stage)
-draw_score(0,0)
 
-p = player_read("fast_arm.char",1)
-p2 = player_read("fast_arm.char",2)
-players = [p,p2]
+######################################################################################
+# USEFULL FUNCTION
 
+
+def RepresentsInt(s): # From https://stackoverflow.com/questions/1265665/how-can-i-check-if-a-string-represents-an-int-without-using-try-except
+    try: 
+        int(s)
+        return True
+    except ValueError:
+        return False
+
+
+pause = threading.Lock()
+players_lock = threading.Lock()
+
+
+players_actions = [[(),()],[(),()]]
+running = True
+
+head = "<o>"
+arm1  = "|_"
+arm2  = "_| "
+hips = "|"
+legs1 = "/|"
+legs2 = "|\\"
+attack_char = "_"
+block1 = "|"
+rest1 = "\\"
+rest2 = "/"
+
+obstacle = "\u2588"
+xoffset = 2
+yoffset = 9
+
+
+
+c = input("play/load game (P / L) : \n")
+while c != "P" and c != "L" :
+    c = input("play/load game (p/l) : \n")
+if c == 'P' :
+    file_name = input("choose a stage (empty = default stage) : \n")
+    stage = stage_read(file_name)
+    game_array = model(stage)
+    
+    c = input("choose player 1 :\n 1 -Fast arm\n 2 -Fast legs \n 3 -Patient Blocker \n 4 -Long Arm\n")
+    if c == '1' :
+        p1 = player_read("fast_arm.char",1)
+    elif c == '2':
+        p1 = player_read("fast_legs.char",1)
+    elif c == '3':
+        p1 = player_read("patient_blocker.char",1)
+    elif c == '4':
+        p1 = player_read("long_arm.char",1)
+        
+    c = input("choose player 1 :\n 1 -Fast arm\n 2 -Fast legs \n 3 -Patient Blocker \n 4 -Long Arm\n")
+    if c == '1' :
+        p2 = player_read("fast_arm.char",2)
+    elif c == '2':
+        p2 = player_read("fast_legs.char",2)
+    elif c == '3':
+        p2 = player_read("patient_blocker.char",2)
+    elif c == '4':
+        p2 = player_read("long_arm.char",2)
+        
+    players = [p1,p2]
+    
+else :
+    save_name = input("Enter save name :\n")
+    while not(os.path.exists(save_name)):
+        print("save name doesn't exist !")
+        save_name = input("Enter save name :\n")
+        
+    (stage, players)= load("Save")
+    game_array = model(stage)
+
+
+fps = input("Enter frame rate (fps) :\n")   
+while not RepresentsInt(fps) :
+    fps = input("Enter frame rate (fps) :\n")   
+    
+fps = int(fps)
+screen = curses.initscr()
 start_stage(game_array)
+
+
 thread_listening = threading.Thread(target=listener,)
 thread_actualizer = threading.Thread(target=actualizer,)
-thread_fps = threading.Thread(target=loop,args = (10,))
+thread_fps = threading.Thread(target=loop,args = (fps,))
 thread_fps.start()
 thread_listening.start()
 thread_actualizer.start()
-
