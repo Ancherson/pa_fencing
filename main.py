@@ -148,6 +148,7 @@ def show_pause():
     screen.addstr(7,xoffset,"Attack :     Z | O")
     screen.addstr(8,xoffset,"Block :      S | P")
     screen.addstr(9,xoffset,"Quit :         X")
+    screen.addstr(9,xoffset,"Quit & Save:   W")
 
     screen.refresh()
     return
@@ -205,6 +206,36 @@ def clear_player(y,x,num_player,jump = False):
 
 #######################################################################################################
     
+# SAVE AND LOAD FUNCTION
+
+def save():
+    clear_stage()
+    curses.nocbreak()
+    screen.keypad(False)
+    curses.echo()
+    curses.curs_set(1)
+    file = input("Enter a file name :")
+    while os.path.exists(file) :
+        print("file already exist")
+        file = input("Enter a file name :")
+    with open(file,"x") as f:
+        scene = ""
+        for elt in game_array :
+            if elt == 0:
+                scene += '_'
+            elif elt == 1:
+                scene += '1'
+            elif elt == 2 :
+                scene += '2'
+            elif elt == 3 :
+                scene += 'x'
+            elif elt == 4 :
+                scene += '1x'
+            elif elt == 5 :
+                scene += 'x2'
+        f.write(scene+'\n')
+        f.write(players[0].toString())
+        f.write(players[1].toString())
 
 ###################################################################################################
 
@@ -436,6 +467,11 @@ def listener():
                 continue
             elif c == ord('x'):
                 break  
+            elif c == ord('w'):
+                players_lock.acquire()
+                save()
+                players_lock.release()
+                break
             else :
                 continue
             
